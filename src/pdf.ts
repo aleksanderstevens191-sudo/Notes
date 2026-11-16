@@ -240,7 +240,7 @@ export function rangeText(pt: PageText, start: number, end: number): string {
 // ---------- rendering ----------
 const bitmapCache = new Map<string, Promise<HTMLCanvasElement>>();
 const bitmapOrder: string[] = [];
-const MAX_BITMAPS = 24;
+const MAX_BITMAPS = 10;
 
 /** Render a page to a canvas at given pixel scale (cached). */
 export function renderPage(doc: LoadedDoc, i: number, scale: number): Promise<HTMLCanvasElement> {
@@ -264,7 +264,10 @@ export function renderPage(doc: LoadedDoc, i: number, scale: number): Promise<HT
   bitmapOrder.push(key);
   while (bitmapOrder.length > MAX_BITMAPS) {
     const k = bitmapOrder.shift()!;
+    const old = bitmapCache.get(k);
     bitmapCache.delete(k);
+    // free pixel memory right away (iPad Safari has a hard total canvas memory limit)
+    old?.then((c) => setTimeout(() => { c.width = 0; c.height = 0; }, 2000)).catch(() => {});
   }
   p.catch(() => bitmapCache.delete(key));
   return p;

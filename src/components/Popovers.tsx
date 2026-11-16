@@ -4,10 +4,10 @@ import { useUI, setUI, ui } from '../ui';
 import { HL_COLORS, NOTE_COLORS, PEN_COLORS } from '../types';
 import {
   createHighlight, clearHighlightsInSelection, createExcerpt, addComment, selectionSegments, data, edit, deleteHighlight,
-  createExcerptFromHighlight, goToItem, deleteItems, goToSource, linksFor, goToAnchor, createImageExcerpt, runSearch, copyDeepLink,
+  createExcerptFromHighlight, goToItem, deleteItems, goToSource, linksFor, goToAnchor, createImageExcerpt, runSearch, copyDeepLink, pageTextSync,
 } from '../actions';
 import { regionText, regionRange, cropPage } from './DocView';
-import { loadDoc } from '../pdf';
+import { loadDoc, sentenceAt } from '../pdf';
 import { anchorKey } from '../ui';
 
 function Pop({ x, y, children, className = '', anchor = 'above' }: { x: number; y: number; children: React.ReactNode; className?: string; anchor?: 'above' | 'below' }) {
@@ -119,6 +119,36 @@ function SelectionMenu({ x, y }: { x: number; y: number }) {
           useApp.getState().showToast('Bookmark added');
           close();
         }}>Bookmark</button>
+        <button onClick={() => {
+          // Select More: grow to the whole sentence, then the paragraph
+          const { anchor: a0, focus: f0 } = sel;
+          const fwd = a0.page < f0.page || (a0.page === f0.page && a0.idx <= f0.idx);
+          const a = fwd ? a0 : f0;
+          const f = fwd ? f0 : a0;
+          const ptA = pageTextSync(sel.docId, a.page);
+          const ptF = pageTextSync(sel.docId, f.page);
+          if (!ptA || !ptF) return;
+          let [s0] = sentenceAt(ptA, a.idx);
+          let [, s1] = sentenceAt(ptF, f.idx);
+          if (s0 === a.idx && s1 - 1 === f.idx) {
+            // already a sentence: grow to paragraph (blank-line / large gap boundaries)
+            const para = (pt: typeof ptA, i: number, dir: -1 | 1) => {
+              let k = i;
+              while (k + dir >= 0 && k + dir < pt.chars.length) {
+                const c = pt.chars[k], n = pt.chars[k + dir];
+                if (c.c === '\n' || n.c === '\n') {
+                  const L1 = pt.lines[c.line], L2 = pt.lines[n.line];
+                  if (L1 && L2 && L1 !== L2 && Math.abs(L2.y - L1.y) > L1.h * 1.6) break;
+                }
+                k += dir;
+              }
+              return k;
+            };
+            s0 = para(ptA, a.idx, -1);
+            s1 = para(ptF, f.idx, 1) + 1;
+          }
+          setUI({ sel: { docId: sel.docId, anchor: { page: a.page, idx: s0 }, focus: { page: f.page, idx: Math.max(s0, s1 - 1) } } });
+        }}>Select More</button>
         <button className="more" onClick={() => setMore(!more)}>•••</button>
       </div>
       {more && (

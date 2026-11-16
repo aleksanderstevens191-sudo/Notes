@@ -365,3 +365,15 @@ button.primary { background: var(--accent) !important; color: #fff; padding: 9px
 .ocr-banner button.x { background: transparent; color: var(--muted); padding: 4px 6px; }
 :root[data-theme='dark'] .page-seg { background: #1e1f22; }
 :root[data-theme='dark'] .ws-stack.has-kids > .ws-item + .ws-item::before { box-shadow: inset 0 3px 3px -2px rgba(0, 0, 0, 0.6); }
+@media (max-width: 700px) {
+  .toolbar { overflow-x: auto; scrollbar-width: none; gap: 2px; }
+  .toolbar::-webkit-scrollbar { display: none; }
+  .toolbar .icon-btn { width: 36px; }
+  .tb-group.right { margin-left: 8px; }
+  .share-btn { padding: 7px 10px; }
+  .lib-side { display: none; }
+  .lib-bar { overflow-x: auto; scrollbar-width: none; }
+  .lib-bar::-webkit-scrollbar { display: none; }
+  .lib-main { padding: 8px 16px 60px; }
+  .rail { transform: translateY(-50%) scale(0.85); }
+}

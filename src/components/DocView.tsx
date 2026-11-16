@@ -1013,9 +1013,17 @@ const PageSeg = memo(function PageSeg(p: SegProps) {
   const flashKey = useUI((st) => st.flashKey);
 
   useEffect(() => {
-    if (!p.visible) return;
+    if (!p.visible) {
+      // release pixels of off-screen pages
+      const c = canvasRef.current;
+      if (c && c.width > 1) {
+        c.width = 1;
+        c.height = 1;
+      }
+      return;
+    }
     let alive = true;
-    const dpr = Math.min(window.devicePixelRatio || 1, 3);
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
     renderPage(p.ld, seg.page, s * dpr).then((bmp) => {
       const c = canvasRef.current;
       if (!alive || !c) return;

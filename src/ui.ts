@@ -72,7 +72,7 @@ interface UIState {
 
 export const useUI = create<UIState>((set) => ({
   openDocs: [],
-  docRatio: 0.45,
+  docRatio: typeof window !== 'undefined' && window.innerHeight > window.innerWidth ? 0.58 : 0.45,
   zoom: {},
   sel: null,
   popover: null,
