@@ -12,17 +12,39 @@ export function strokeOutline(points: Pt[], width: number, kind: 'pen' | 'highli
     return d;
   }
   const simulate = points.every((p) => p[2] === 0.5 || p[2] === 0);
-  const outline = getStroke(points as unknown as number[][], {
+  const outline = getStroke((simulate ? points : smoothPressure(points)) as unknown as number[][], {
     size: width * 2.2,
-    thinning: simulate ? 0.5 : 0.62,
-    smoothing: 0.55,
-    streamline: 0.35,
+    thinning: simulate ? 0.5 : 0.55,
+    smoothing: 0.6,
+    streamline: 0.4,
     simulatePressure: simulate,
     last,
     start: { taper: 0, cap: true },
     end: { taper: 0, cap: true },
   });
   return svgPathFromOutline(outline);
+}
+
+/**
+ * Apple Pencil pressure is noisy and very low on light strokes (often < 0.1), which made light
+ * writing break up into beads/dots. Map pressure onto a soft curve with a floor, drop
+ * near-duplicate points, and smooth pressure along the stroke so width changes gradually.
+ */
+function smoothPressure(points: Pt[]): Pt[] {
+  const out: Pt[] = [];
+  let ema = -1;
+  for (const p of points) {
+    const raw = p[2] > 0 ? Math.min(1, p[2]) : 0.5;
+    const mapped = 0.4 + 0.6 * Math.pow(raw, 0.55); // light touch ~0.55-0.6, full press = 1
+    ema = ema < 0 ? mapped : ema + (mapped - ema) * 0.25;
+    const last = out[out.length - 1];
+    if (last && Math.hypot(p[0] - last[0], p[1] - last[1]) < 0.3) {
+      last[2] = ema;
+      continue;
+    }
+    out.push([p[0], p[1], ema]);
+  }
+  return out;
 }
 
 function svgPathFromOutline(pts: number[][]): string {
