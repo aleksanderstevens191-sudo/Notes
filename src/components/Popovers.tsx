@@ -4,7 +4,7 @@ import { useUI, setUI, ui } from '../ui';
 import { HL_COLORS, NOTE_COLORS, PEN_COLORS } from '../types';
 import {
   createHighlight, clearHighlightsInSelection, createExcerpt, addComment, selectionSegments, data, edit, deleteHighlight,
-  createExcerptFromHighlight, goToItem, deleteItems, goToSource, linksFor, goToAnchor, createImageExcerpt, runSearch,
+  createExcerptFromHighlight, goToItem, deleteItems, goToSource, linksFor, goToAnchor, createImageExcerpt, runSearch, copyDeepLink,
 } from '../actions';
 import { regionText, regionRange, cropPage } from './DocView';
 import { loadDoc } from '../pdf';
@@ -140,6 +140,15 @@ function SelectionMenu({ x, y }: { x: number; y: number }) {
             const t = text();
             window.open('https://www.google.com/search?q=' + encodeURIComponent(t), '_blank');
           }}>Look up</button>
+          <button onClick={() => {
+            const id = createHighlight(sel, hlColor);
+            if (id) copyDeepLink({ hl: id });
+            close();
+          }}>Copy Link</button>
+          <button onClick={() => {
+            const id = createHighlight(sel, hlColor);
+            if (id) setUI({ sel: null, popover: { kind: 'tags', target: { type: 'hl', ids: [id] }, x, y } });
+          }}>Tag…</button>
         </div>
       )}
       <div className="menu-row colors">
@@ -191,6 +200,7 @@ function HighlightMenu({ id, x, y }: { id: string; x: number; y: number }) {
         {h.kind !== 'excerpt' && <button onClick={() => { const iid = createExcerptFromHighlight(id); close(); if (iid) setTimeout(() => goToItem(iid), 50); }}>Excerpt</button>}
         <button onClick={() => { navigator.clipboard?.writeText(h.text); useApp.getState().showToast('Copied'); close(); }}>Copy</button>
         <button onClick={() => { setUI({ linkFrom: { kind: 'hl', id }, popover: null }); useApp.getState().showToast('Tap something to link to'); }}>Link…</button>
+        <button onClick={() => { copyDeepLink({ hl: id }); close(); }}>Copy Link</button>
         <button onClick={() => setUI({ popover: { kind: 'tags', target: { type: 'hl', ids: [id] }, x, y } })}>Tags</button>
         {h.kind !== 'excerpt' && <button className="danger" onClick={() => deleteHighlight(id)}>Delete</button>}
       </div>
@@ -232,6 +242,7 @@ function ItemMenu({ ids, x, y }: { ids: string[]; x: number; y: number }) {
         {one && <button onClick={() => setUI({ editingItem: one.id, popover: null })}>Edit</button>}
         {items.length > 0 && <button onClick={() => setShowColors(!showColors)}>Color</button>}
         {one && <button onClick={() => { setUI({ linkFrom: { kind: 'item', wsId: ws.id, id: one.id }, popover: null }); useApp.getState().showToast('Tap something to link to'); }}>Link…</button>}
+        {one && <button onClick={() => { copyDeepLink({ item: one.id }); close(); }}>Copy Link</button>}
         {one && linksFor('item:' + one.id).length > 0 && <button onClick={() => { close(); const l = linksFor('item:' + one.id)[0]; goToAnchor(anchorKey(l.a) === 'item:' + one.id ? l.b : l.a); }}>Follow link</button>}
         {items.length > 0 && <button onClick={() => setUI({ popover: { kind: 'tags', target: { type: 'item', ids: items.map((i) => i.id) }, x, y } })}>Tags</button>}
         {items.length > 0 && <button onClick={() => {

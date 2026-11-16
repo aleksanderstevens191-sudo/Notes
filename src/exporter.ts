@@ -5,7 +5,7 @@ import { useApp, uid } from './store';
 import { strokeOutline } from './ink';
 import type { ProjectData, ProjectMeta, Workspace } from './types';
 import { hlFill } from './types';
-import { exportFilename, shareOrDownload, htmlToText, docLabel } from './actions';
+import { exportFilename, shareOrDownload, htmlToText } from './actions';
 
 function hexToRgb(hex: string) {
   const m = /^#?([0-9a-f]{6})$/i.exec(hex);
@@ -251,7 +251,7 @@ export async function renderWorkspace(ws: Workspace, d: ProjectData, scale = 2):
     if (it.source) {
       ctx.font = 'italic 11px -apple-system, Helvetica, Arial';
       ctx.fillStyle = '#555';
-      ctx.fillText('-' + docLabel(it.source.docId, it.source.page), p.x + 16, p.y + p.h - 10);
+      ctx.fillText(`-${d.docs.find((x) => x.id === it.source!.docId)?.name ?? 'Document'}, p.${it.source.page + 1}`, p.x + 16, p.y + p.h - 10);
     }
   }
   for (const s of ws.ink) {
@@ -304,7 +304,7 @@ export function notesMarkdown(meta: ProjectMeta, d: ProjectData): string {
       let first = true;
       while (cur) {
         const txt = cur.type === 'note' ? htmlToText(cur.text) : cur.text;
-        const src = cur.source ? ` _(${docLabel(cur.source.docId, cur.source.page)})_` : '';
+        const src = cur.source ? ` _(${d.docs.find((x) => x.id === cur!.source!.docId)?.name ?? 'Document'}, p.${cur.source.page + 1})_` : '';
         const tags = cur.tags.length ? ' ' + cur.tags.map((t) => '#' + t).join(' ') : '';
         md += `${first ? '- ' : '  - '}${cur.type === 'excerpt' ? '> ' : ''}${txt.replace(/\n/g, ' ')}${src}${tags}\n`;
         first = false;

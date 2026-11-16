@@ -87,7 +87,7 @@ export async function createSampleProject() {
     if (h1) {
       const h = mk(h1, '#ffe600', 'highlight');
       data.highlights.push(h);
-      const n2: WsItem = { id: uid(), type: 'note', x: 400, y: 420, w: 200, color: '#ffe066', fontSize: 15, text: 'This is exactly why we can collapse and excerpt. (Linked to a highlight →)', tags: [], createdAt: Date.now() };
+      const n2: WsItem = { id: uid(), type: 'note', x: 375, y: 470, w: 170, color: '#ffe066', fontSize: 15, text: 'This is exactly why we can collapse and excerpt. (Linked to a highlight →)', tags: [], createdAt: Date.now() };
       items.push(n2);
       data.links.push({ id: uid(), a: { kind: 'hl', id: h.id }, b: { kind: 'item', wsId: ws.id, id: n2.id }, color: '#e0a800' });
     }
@@ -98,6 +98,9 @@ export async function createSampleProject() {
     ws.ink.push({ id: uid(), points: pts, color: '#1a3fd6', width: 2.5, kind: 'pen' });
     ws.view = { x: 20, y: 10, zoom: 1 };
     await db.putData(id, data);
+    const { makeThumb } = await import('./exporter');
+    const meta = await db.getMeta(id);
+    if (meta) await db.putMeta({ ...meta, thumb: await makeThumb(data) });
   } catch (e) {
     console.warn('sample decoration failed', e);
   }

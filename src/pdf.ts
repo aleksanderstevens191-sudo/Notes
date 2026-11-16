@@ -64,7 +64,9 @@ export function loadDoc(fileId: string): Promise<LoadedDoc> {
 }
 
 export function getPage(doc: LoadedDoc, i: number) {
-  return doc.pageProxies.get(i)!;
+  const p = doc.pageProxies.get(i);
+  if (!p) return Promise.reject(new Error('Page ' + (i + 1) + ' does not exist'));
+  return p;
 }
 
 const measureCtx = (() => {
@@ -242,7 +244,7 @@ const MAX_BITMAPS = 24;
 
 /** Render a page to a canvas at given pixel scale (cached). */
 export function renderPage(doc: LoadedDoc, i: number, scale: number): Promise<HTMLCanvasElement> {
-  const q = Math.max(0.25, Math.round(scale * 4) / 4);
+  const q = Math.max(0.25, Math.ceil(scale * 8 - 0.05) / 8);
   const key = `${doc.fileId}:${i}:${q}`;
   let p = bitmapCache.get(key);
   if (p) return p;

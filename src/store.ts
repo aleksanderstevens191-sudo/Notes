@@ -171,6 +171,12 @@ export const useApp = create<AppState>((set, get) => ({
       size += d.bytes.byteLength;
     }
     const meta: ProjectMeta = { id, name, folderId, createdAt: now, updatedAt: now, size };
+    try {
+      const { makeThumb } = await import('./exporter');
+      meta.thumb = await makeThumb(data);
+    } catch {
+      /* thumbnail is optional */
+    }
     await db.putData(id, data);
     await db.putMeta(meta);
     await get().refreshLibrary();

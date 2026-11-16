@@ -193,6 +193,16 @@ export function ProjectView() {
                   ))}
                   <hr />
                   <button onClick={() => setUI({ modal: { kind: 'addDoc' } })}>+ Add document…</button>
+                  <button onClick={async () => {
+                    useApp.getState().showToast('Recognizing text… this can take a minute');
+                    try {
+                      const { ocrDocument } = await import('../ocr');
+                      await ocrDocument(activeDoc.id, () => {});
+                      useApp.getState().showToast('Text recognized');
+                    } catch (e: any) {
+                      alert('OCR failed: ' + (e?.message || e));
+                    }
+                  }}>Recognize text (OCR)</button>
                   <button onClick={() => {
                     const n = prompt('Rename document', activeDoc.name);
                     if (n) edit((d) => { const x = d.docs.find((z) => z.id === activeDoc.id); if (x) x.name = n; });

@@ -530,3 +530,39 @@ export async function shareOrDownload(blob: Blob, filename: string) {
 export function useOpenDoc() {
   return useUI((s) => s.openDocs[0]);
 }
+
+// ---------- deep links (URL links between projects and other apps) ----------
+export function deepLink(target: { hl?: string; item?: string }): string {
+  const pid = useApp.getState().project!.meta.id;
+  const q = new URLSearchParams({ p: pid, ...(target.hl ? { hl: target.hl } : {}), ...(target.item ? { item: target.item } : {}) });
+  return `${location.origin}${location.pathname}#${q.toString()}`;
+}
+
+export async function copyDeepLink(target: { hl?: string; item?: string }) {
+  const url = deepLink(target);
+  try {
+    await navigator.clipboard.writeText(url);
+    useApp.getState().showToast('Link copied — paste it in any app or note');
+  } catch {
+    prompt('Copy this link', url);
+  }
+}
+
+export async function openDeepLink(hash: string) {
+  const q = new URLSearchParams(hash.replace(/^#/, ''));
+  const pid = q.get('p');
+  if (!pid) return;
+  const st = useApp.getState();
+  if (!st.projects.some((p) => p.id === pid)) {
+    st.showToast('That project is not on this device');
+    return;
+  }
+  if (st.project?.meta.id !== pid) await st.openProject(pid);
+  const hl = q.get('hl');
+  const item = q.get('item');
+  setTimeout(() => {
+    if (hl) goToHighlight(hl);
+    if (item) goToItem(item);
+  }, 900);
+  history.replaceState(null, '', location.pathname);
+}

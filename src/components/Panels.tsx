@@ -89,22 +89,63 @@ export function PagesPanel({ docId }: { docId: string }) {
   const doc = useApp((s) => s.project!.data.docs.find((d) => d.id === docId));
   const highlights = useApp((s) => s.project!.data.highlights);
   const [n, setN] = useState(0);
+  const [editing, setEditing] = useState(false);
+  const [sel, setSel] = useState<number[]>([]);
+  const [busy, setBusy] = useState(false);
   useEffect(() => {
-    if (doc) loadDoc(doc.fileId).then((ld) => setN(ld.pages.length));
+    if (doc) {
+      setN(doc.pageCount);
+      loadDoc(doc.fileId).then((ld) => setN(ld.pages.length));
+    }
   }, [doc?.fileId]);
   if (!doc) return null;
   const annotated = new Set<number>();
   for (const h of highlights) if (h.docId === docId) for (const s of h.segments) annotated.add(s.page);
+  const run = async (fn: () => Promise<unknown>) => {
+    setBusy(true);
+    try {
+      await fn();
+    } catch (e: any) {
+      alert(e?.message || e);
+    } finally {
+      setBusy(false);
+    }
+  };
+  const pe = () => import('../pageEditor');
   return (
     <div className="side-panel left pages-panel">
       <div className="panel-head">
         <b>Pages</b>
         <span className="grow" />
+        <button className="txt-link" onClick={() => { setEditing(!editing); setSel([]); }}>{editing ? 'Done' : 'Edit pages'}</button>
         <button className="icon-btn" onClick={() => setUI({ panel: null })}>{I.close}</button>
       </div>
+      {editing && (
+        <div className="panel-actions">
+          {busy ? <span>Working…</span> : <>
+            <span>{sel.length} selected</span>
+            <button disabled={!sel.length} onClick={() => run(async () => {
+              if (!confirm(`Delete ${sel.length} page(s)? Annotations on them are removed.`)) return;
+              await (await pe()).deletePages(docId, sel);
+              setSel([]);
+            })}>Delete</button>
+            <button disabled={!sel.length} onClick={() => run(async () => { await (await pe()).movePages(docId, sel, -1); setSel(sel.map((p) => Math.max(0, p - 1))); })}>Move up</button>
+            <button disabled={!sel.length} onClick={() => run(async () => { await (await pe()).movePages(docId, sel, 1); setSel(sel.map((p) => Math.min(n - 1, p + 1))); })}>Move down</button>
+            <button onClick={() => run(async () => (await pe()).insertBlank(docId, sel.length ? Math.max(...sel) : n - 1))}>+ Blank page</button>
+            <button onClick={() => run(async () => (await pe()).insertFromFile(docId, sel.length ? Math.max(...sel) : n - 1))}>+ From file</button>
+            <button disabled={!sel.length} onClick={() => run(async () => {
+              const d = await (await pe()).extractPages(docId, sel);
+              useApp.getState().showToast('Extracted to “' + d.name + '”');
+            })}>Extract</button>
+          </>}
+        </div>
+      )}
       <div className="panel-body thumbs">
         {Array.from({ length: n }, (_, i) => (
-          <button key={i} className="thumb" onClick={() => goToDoc(docId, i, 0)}>
+          <button key={doc.fileId + i} className={`thumb ${sel.includes(i) ? 'sel' : ''}`} onClick={() => {
+            if (editing) setSel(sel.includes(i) ? sel.filter((x) => x !== i) : [...sel, i]);
+            else goToDoc(docId, i, 0);
+          }}>
             <Thumb fileId={doc.fileId} page={i} />
             <span>{i + 1}{annotated.has(i) ? ' •' : ''}</span>
           </button>
@@ -133,7 +174,7 @@ function Thumb({ fileId, page }: { fileId: string; page: number }) {
         c.height = bmp.height;
         c.getContext('2d')!.drawImage(bmp, 0, 0);
       }),
-    );
+    ).catch(() => {});
   }, [vis]);
   return <canvas ref={ref} className="thumb-canvas" />;
 }

@@ -918,7 +918,44 @@ export function DocView({ docId, width }: { docId: string; width: number }) {
           {pinchBand && <div className="pinch-band" style={{ top: pinchBand.top + (scrollRef.current?.scrollTop ?? 0), height: pinchBand.bottom - pinchBand.top }} />}
         </div>
       </div>
+      {ld && <OcrBanner docId={docId} ld={ld} />}
       {ld && <Overview docId={docId} ld={ld} byPage={byPage} scrollRef={scrollRef} tick={scrollTick} search={searchByPage} pageCount={pageCount} />}
+    </div>
+  );
+}
+
+function OcrBanner({ docId, ld }: { docId: string; ld: LoadedDoc }) {
+  const [state, setState] = useState<'hidden' | 'offer' | 'busy' | 'error'>('hidden');
+  const [msg, setMsg] = useState('');
+  useEffect(() => {
+    let n = 0;
+    for (let i = 0; i < Math.min(3, ld.pages.length); i++) n += ld.textReady.get(i)?.chars.length ?? 0;
+    const ready = ld.textReady.size >= Math.min(3, ld.pages.length);
+    if (ready && n < 20 && state === 'hidden') setState('offer');
+  }, [ld, ld.textReady.size]);
+  if (state === 'hidden') return null;
+  return (
+    <div className="ocr-banner no-doc-gesture">
+      {state === 'offer' && (
+        <>
+          <span>This document has no selectable text.</span>
+          <button onClick={async () => {
+            setState('busy');
+            try {
+              const { ocrDocument } = await import('../ocr');
+              await ocrDocument(docId, setMsg);
+              setState('hidden');
+              useApp.getState().showToast('Text recognized');
+            } catch (e: any) {
+              setMsg('OCR failed: ' + (e?.message || e) + ' (needs an internet connection the first time)');
+              setState('error');
+            }
+          }}>Recognize text (OCR)</button>
+          <button className="x" onClick={() => setState('hidden')}>✕</button>
+        </>
+      )}
+      {state === 'busy' && <><div className="spinner" /> <span>{msg}</span></>}
+      {state === 'error' && <><span>{msg}</span><button className="x" onClick={() => setState('hidden')}>✕</button></>}
     </div>
   );
 }
@@ -987,7 +1024,7 @@ const PageSeg = memo(function PageSeg(p: SegProps) {
       c.height = Math.max(1, Math.round(h * s * dpr));
       const ctx = c.getContext('2d')!;
       ctx.drawImage(bmp, 0, seg.y0 * q, bmp.width, h * q, 0, 0, c.width, c.height);
-    });
+    }).catch(() => {});
     return () => {
       alive = false;
     };

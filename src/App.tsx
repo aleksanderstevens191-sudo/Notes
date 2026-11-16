@@ -3,6 +3,7 @@ import { useApp } from './store';
 import { Library } from './components/Library';
 import { ProjectView } from './components/ProjectView';
 import { requestPersistence } from './db';
+import { openDeepLink } from './actions';
 
 export function App() {
   const ready = useApp((s) => s.ready);
@@ -12,8 +13,13 @@ export function App() {
   const theme = useApp((s) => s.settings.theme);
 
   useEffect(() => {
-    useApp.getState().init();
+    useApp.getState().init().then(() => {
+      if (location.hash.includes('p=')) openDeepLink(location.hash);
+    });
     requestPersistence();
+    const onHash = () => location.hash.includes('p=') && openDeepLink(location.hash);
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
   }, []);
 
   useEffect(() => {
