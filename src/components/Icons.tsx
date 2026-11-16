@@ -1,0 +1,58 @@
+import React from 'react';
+
+const S = (p: { children: React.ReactNode; size?: number }) => (
+  <svg viewBox="0 0 24 24" width={p.size ?? 24} height={p.size ?? 24} fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+    {p.children}
+  </svg>
+);
+
+export const I = {
+  home: <S><path d="M3 11l9-7 9 7" /><path d="M5 10v10h14V10" /></S>,
+  back: <S><path d="M15 5l-7 7 7 7" /></S>,
+  fwd: <S><path d="M9 5l7 7-7 7" /></S>,
+  importDoc: <S><path d="M14 3H6v18h12V7z" /><path d="M14 3v4h4" /><path d="M12 10v7M9 14l3 3 3-3" /></S>,
+  undo: <S><circle cx="12" cy="12" r="9" /><path d="M8 11h6a2.5 2.5 0 010 5h-2" /><path d="M10 8.5L7.5 11 10 13.5" /></S>,
+  redo: <S><circle cx="12" cy="12" r="9" /><path d="M16 11h-6a2.5 2.5 0 000 5h2" /><path d="M14 8.5l2.5 2.5-2.5 2.5" /></S>,
+  textTool: <S><rect x="3.5" y="3.5" width="17" height="17" rx="2" /><path d="M8.5 17l3.5-10 3.5 10M10 13.5h4" /></S>,
+  pen: <S><path d="M4 20l1.2-4.8L16.5 3.9a1.8 1.8 0 012.6 0l1 1a1.8 1.8 0 010 2.6L8.8 18.8z" /><path d="M14.5 6l3.5 3.5" /></S>,
+  highlighter: <S><path d="M9 3h6v6l2 3v9H7v-9l2-3z" /><path d="M9 9h6" /></S>,
+  eraser: <S><path d="M8 3h8v15a2 2 0 01-2 2h-4a2 2 0 01-2-2z" /><path d="M8 13h8" /></S>,
+  lasso: <S><path d="M4 4h4M12 4h4M20 4v4M20 12v2M4 8v4M4 16v4h4" strokeDasharray="0" /><path d="M13 13l7 3-3 1-1 3z" /></S>,
+  share: <S><path d="M14 4h6v6" /><path d="M20 4l-9 9" /><path d="M18 14v5a1 1 0 01-1 1H5a1 1 0 01-1-1V7a1 1 0 011-1h5" /></S>,
+  search: <S><circle cx="10.5" cy="10.5" r="6.5" /><path d="M20 20l-4.8-4.8" /></S>,
+  help: <S><circle cx="12" cy="12" r="9" /><path d="M9.5 9.5a2.5 2.5 0 015 0c0 1.7-2.5 2-2.5 4" /><circle cx="12" cy="17" r=".6" fill="currentColor" /></S>,
+  more: <S><circle cx="5" cy="12" r="1.3" fill="currentColor" /><circle cx="12" cy="12" r="1.3" fill="currentColor" /><circle cx="19" cy="12" r="1.3" fill="currentColor" /></S>,
+  collapse: <S><path d="M4 6h10M4 18h10M4 12h6" /><path d="M18 4v5l-2-2M18 9l2-2M18 20v-5l-2 2M18 15l2 2" /></S>,
+  outline: <S><path d="M8 6h12M8 12h12M8 18h12" /><circle cx="4" cy="6" r=".8" fill="currentColor" /><circle cx="4" cy="12" r=".8" fill="currentColor" /><circle cx="4" cy="18" r=".8" fill="currentColor" /></S>,
+  pages: <S><rect x="4" y="4" width="6.5" height="7" rx="1" /><rect x="13.5" y="4" width="6.5" height="7" rx="1" /><rect x="4" y="13" width="6.5" height="7" rx="1" /><rect x="13.5" y="13" width="6.5" height="7" rx="1" /></S>,
+  addDoc: <S><path d="M14 3H6v18h12V7z" /><path d="M14 3v4h4" /><path d="M12 10v7M8.5 13.5h7" /></S>,
+  bookmark: <S><path d="M6 3h12v18l-6-4-6 4z" /><path d="M12 7v6M9 10h6" /></S>,
+  annotations: <S><path d="M4 5h16v11H9l-5 4z" /><path d="M8 9h8M8 12h5" /></S>,
+  addNote: <S><rect x="3" y="5" width="14" height="12" rx="1.5" /><path d="M6 13l2.5-6 2.5 6M7 11h3M12.5 13V9.5a1.5 1.5 0 013 0V13M12.5 11h3" /><path d="M20 15v6M17 18h6" /></S>,
+  zoomOut: <S><circle cx="10.5" cy="10.5" r="6.5" /><path d="M20 20l-4.8-4.8M7.5 10.5h6" /></S>,
+  zoomIn: <S><circle cx="10.5" cy="10.5" r="6.5" /><path d="M20 20l-4.8-4.8M7.5 10.5h6M10.5 7.5v6" /></S>,
+  fit: <S><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></S>,
+  plusBox: <S><rect x="4" y="4" width="16" height="16" rx="2" /><path d="M12 8v8M8 12h8" /></S>,
+  chevL: <S><path d="M14 7l-5 5 5 5" /></S>,
+  chevR: <S><path d="M10 7l5 5-5 5" /></S>,
+  chevD: <S><path d="M7 10l5 5 5-5" /></S>,
+  pin: <S><path d="M9 4h6l-1 6 3 3H7l3-3z" /><path d="M12 13v7" /></S>,
+  split: <S><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M12 4v16" /></S>,
+  close: <S><path d="M6 6l12 12M18 6L6 18" /></S>,
+  folder: <S><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" /></S>,
+  folderPlus: <S><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" /><path d="M12 10v6M9 13h6" /></S>,
+  list: <S><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" /></S>,
+  grid: <S><rect x="4" y="4" width="7" height="7" rx="1" /><rect x="13" y="4" width="7" height="7" rx="1" /><rect x="4" y="13" width="7" height="7" rx="1" /><rect x="13" y="13" width="7" height="7" rx="1" /></S>,
+  cloud: <S><path d="M7 18a4 4 0 01-.5-8A6 6 0 0118 9a4.5 4.5 0 01-1 9z" /></S>,
+  file: <S><path d="M7 18a4 4 0 01-.5-8A6 6 0 0118 9a4.5 4.5 0 01-1 9z" /></S>,
+  web: <S><rect x="3" y="4" width="18" height="14" rx="2" /><path d="M3 8h18" /><path d="M12 13l3 5-1.5-.5L12 21" /></S>,
+  camera: <S><path d="M4 8h3l2-3h6l2 3h3v11H4z" /><circle cx="12" cy="13" r="3.5" /></S>,
+  puzzle: <S><path d="M10 4a2 2 0 014 0v2h4v4h-2a2 2 0 000 4h2v4h-4v-2a2 2 0 00-4 0v2H6v-4h2a2 2 0 000-4H6V6h4z" /></S>,
+  newProject: <S><rect x="4" y="3" width="16" height="18" rx="2" /><path d="M12 8v8M8 12h8" /></S>,
+  text: <S><path d="M5 6h14M12 6v13M9 19h6" /></S>,
+  link: <S><path d="M10 14a4 4 0 005.6 0l3-3a4 4 0 00-5.6-5.6l-1 1" /><path d="M14 10a4 4 0 00-5.6 0l-3 3a4 4 0 005.6 5.6l1-1" /></S>,
+  trash: <S><path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13" /></S>,
+  settings: <S><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.6 1.6 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.6 1.6 0 00-1.8-.3 1.6 1.6 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.6 1.6 0 00-1-1.5 1.6 1.6 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.6 1.6 0 00.3-1.8 1.6 1.6 0 00-1.5-1H3a2 2 0 110-4h.1a1.6 1.6 0 001.5-1 1.6 1.6 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.6 1.6 0 001.8.3H9a1.6 1.6 0 001-1.5V3a2 2 0 114 0v.1a1.6 1.6 0 001 1.5 1.6 1.6 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.6 1.6 0 00-.3 1.8V9a1.6 1.6 0 001.5 1H21a2 2 0 110 4h-.1a1.6 1.6 0 00-1.5 1z" /></S>,
+  layers: <S><path d="M12 3l9 5-9 5-9-5z" /><path d="M3 13l9 5 9-5" /></S>,
+  tag: <S><path d="M3 12V4h8l10 10-8 8z" /><circle cx="7.5" cy="8.5" r="1.3" /></S>,
+};

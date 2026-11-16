@@ -1,0 +1,31 @@
+{
+  "name": "fluidnotes",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "FluidNotes - an iPad-first active reading & note-taking app with full Apple Pencil support",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "immer": "^11.2.10",
+    "nanoid": "^6.0.2",
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^4.10.38",
+    "perfect-freehand": "^1.2.3",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zustand": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.31",
+    "@types/react-dom": "^18.3.7",
+    "@vitejs/plugin-react": "^4.7.0",
+    "typescript": "^5.9.3",
+    "vite": "^6.4.6",
+    "vite-plugin-pwa": "^0.21.2"
+  }
+}
