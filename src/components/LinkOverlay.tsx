@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useApp } from '../store';
 import { anchorKey } from '../ui';
+import { inkActive } from '../liveInk';
 
 // Draws every link (doc <-> workspace, card <-> card, ink <-> text…) as a curve in screen space.
 // Geometry is recomputed every animation frame so links follow scrolling / panning live.
@@ -37,6 +38,15 @@ export function LinkOverlay() {
       const svg = svgRef.current;
       const p = useApp.getState().project;
       if (!svg || !p) return;
+      // never force layout while the Pencil is drawing (keeps ink latency low)
+      if (inkActive || !p.data.links.length) {
+        if (!p.data.links.length && svg.dataset.html) {
+          svg.innerHTML = '';
+          svg.dataset.html = '';
+          lastGeom = [];
+        }
+        return;
+      }
       const sr = svg.getBoundingClientRect();
       const geom: typeof lastGeom = [];
       let html = '';

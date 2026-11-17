@@ -39,8 +39,11 @@ export function selectionSegments(sel: TextSel): { segments: TextSegment[]; text
   for (let p = a.page; p <= b.page; p++) {
     const pt = pageTextSync(sel.docId, p);
     if (!pt) continue;
-    const start = p === a.page ? a.idx : 0;
-    const end = p === b.page ? b.idx + 1 : pt.chars.length;
+    let start = p === a.page ? a.idx : 0;
+    let end = p === b.page ? b.idx + 1 : pt.chars.length;
+    // never highlight leading/trailing blank space
+    while (start < end && /\s/.test(pt.chars[start].c)) start++;
+    while (end > start && /\s/.test(pt.chars[end - 1].c)) end--;
     if (end <= start) continue;
     const rects = rangeRects(pt, start, end);
     if (!rects.length) continue;

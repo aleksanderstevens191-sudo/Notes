@@ -274,7 +274,7 @@ export function ProjectView() {
       </div>
 
       <LinkOverlay />
-      <svg className="live-ink" ref={mountLiveLayer} />
+      <canvas className="live-ink" ref={mountLiveLayer} />
       {drag && (
         <div className="drag-ghost" style={{ left: drag.x, top: drag.y }}>
           {drag.text.slice(0, 220)}

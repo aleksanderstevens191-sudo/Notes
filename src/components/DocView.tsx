@@ -68,7 +68,7 @@ export function DocView({ docId, width }: { docId: string; width: number }) {
   const [lassoSel, setLassoSel] = useState<{ page: number; ids: string[]; rect: Rect; dx: number; dy: number } | null>(null);
   const [pinchBand, setPinchBand] = useState<{ top: number; bottom: number } | null>(null);
   const [liveZoom, setLiveZoom] = useState<{ k: number; ox: number; oy: number } | null>(null);
-  const [scrollTick, setScrollTick] = useState(0);
+  const [hlLive, setHlLive] = useState<string | null>(null);
 
   useEffect(() => {
     if (!doc) return;
@@ -301,7 +301,6 @@ export function DocView({ docId, width }: { docId: string; width: number }) {
 
   const onScroll = () => {
     updateU();
-    setScrollTick((t) => t + 1);
     if (ui().popover && ui().popover!.kind !== 'comment') setUI({ popover: null });
   };
 
@@ -387,9 +386,13 @@ export function DocView({ docId, width }: { docId: string; width: number }) {
       e.preventDefault();
       (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
       setGestureLock(true);
-      if (tool === 'highlighter' && onText(e.clientX, e.clientY)) {
+      // Highlighter on a page with text always highlights TEXT (snaps to the nearest line),
+      // never paints empty space. Free-form marker only on pages without text (e.g. photos).
+      const pageHasText = (ld?.textReady.get(h.page)?.chars.length ?? 0) > 0;
+      if (tool === 'highlighter' && pageHasText) {
         const c = charAt(e.clientX, e.clientY)!;
         g.current = { mode: 'hlText', anchor: { page: c.page, idx: c.idx } };
+        setHlLive(settings.hlColor);
         setUI({ sel: { docId, anchor: { page: c.page, idx: c.idx }, focus: { page: c.page, idx: c.idx } }, popover: null });
         return;
       }
@@ -553,8 +556,17 @@ export function DocView({ docId, width }: { docId: string; width: number }) {
         setUI({ popover: null });
       }
       // falls through
-      case 'selecting':
       case 'hlText': {
+        // character-precise: the highlight follows the pencil tip exactly
+        const c = charAt(e.clientX, e.clientY);
+        if (!c) return;
+        const a = g.current.anchor;
+        const before = c.page < a.page || (c.page === a.page && c.idx < a.idx);
+        setUI({ sel: { docId, anchor: before ? { page: a.page, idx: Math.max(0, a.idx) } : a, focus: before ? c : { page: c.page, idx: Math.max(0, c.idx - 1) } } });
+        autoScroll(e.clientY);
+        return;
+      }
+      case 'selecting': {
         const c = charAt(e.clientX, e.clientY);
         if (!c || !ld) return;
         const a = g.current.anchor;
@@ -652,6 +664,7 @@ export function DocView({ docId, width }: { docId: string; width: number }) {
         const cur = ui().sel;
         if (cur && !cancelled) createHighlight(cur, settings.hlColor);
         setUI({ sel: null });
+        setHlLive(null);
         return;
       }
       case 'dragExcerpt':
@@ -906,6 +919,7 @@ export function DocView({ docId, width }: { docId: string; width: number }) {
                   com={pageData?.com}
                   bm={pageData?.bm}
                   sel={selByPage.get(it.page)}
+                  selColor={hlLive}
                   search={searchByPage.get(it.page)}
                   flash={flashRects && flashRects.page === it.page ? flashRects.rects : undefined}
                   lasso={lassoSel && lassoSel.page === it.page ? lassoSel : undefined}
@@ -919,7 +933,7 @@ export function DocView({ docId, width }: { docId: string; width: number }) {
         </div>
       </div>
       {ld && <OcrBanner docId={docId} ld={ld} />}
-      {ld && <Overview docId={docId} ld={ld} byPage={byPage} scrollRef={scrollRef} tick={scrollTick} search={searchByPage} pageCount={pageCount} />}
+      {ld && <Overview docId={docId} ld={ld} byPage={byPage} scrollRef={scrollRef} search={searchByPage} pageCount={pageCount} />}
     </div>
   );
 }
@@ -998,6 +1012,7 @@ interface SegProps {
   com?: Comment[];
   bm?: Bookmark[];
   sel?: Rect[];
+  selColor?: string | null;
   search?: { rects: Rect[]; active: boolean }[];
   flash?: Rect[];
   lasso?: { ids: string[]; rect: Rect; dx: number; dy: number };
@@ -1044,7 +1059,7 @@ const PageSeg = memo(function PageSeg(p: SegProps) {
   // selection handles
   let hs: { x: number; y: number } | null = null;
   let he: { x: number; y: number } | null = null;
-  if (p.sel?.length) {
+  if (p.sel?.length && !p.selColor) {
     const f = p.sel[0];
     const l = p.sel[p.sel.length - 1];
     if (p.isSelStart && inSeg(f)) hs = { x: f[0], y: f[1] };
@@ -1091,7 +1106,7 @@ const PageSeg = memo(function PageSeg(p: SegProps) {
               })}
           </g>
         ))}
-        {p.sel?.filter(inSeg).map((r, i) => <rect key={'sel' + i} x={r[0] - 0.5} y={r[1]} width={r[2] + 1} height={r[3]} className="sel-rect" />)}
+        {p.sel?.filter(inSeg).map((r, i) => <rect key={'sel' + i} x={r[0] - 0.5} y={r[1]} width={r[2] + 1} height={r[3]} className={p.selColor ? undefined : 'sel-rect'} fill={p.selColor ? hlFill(p.selColor) : undefined} />)}
         {p.flash?.filter(inSeg).map((r, i) => <rect key={'fl' + i} x={r[0] - 2} y={r[1] - 2} width={r[2] + 4} height={r[3] + 4} className="flash-rect" rx={3} />)}
         {p.ink?.map((st) => {
           const moving = p.lasso?.ids.includes(st.id);
@@ -1177,17 +1192,28 @@ const PageSeg = memo(function PageSeg(p: SegProps) {
 });
 
 /** Left-hand miniature map of the whole document with annotation ticks; tap/drag to navigate */
-function Overview({ docId, ld, byPage, scrollRef, tick, search, pageCount }: {
+function Overview({ docId, ld, byPage, scrollRef, search, pageCount }: {
   docId: string;
   ld: LoadedDoc;
   byPage: Map<number, { hl: Highlight[]; ink: DocStroke[]; com: Comment[] }>;
   scrollRef: React.RefObject<HTMLDivElement>;
-  tick: number;
   search: Map<number, { rects: Rect[]; active: boolean }[]>;
   pageCount: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [hgt, setHgt] = useState(400);
+  // own scroll listener: only this small strip re-renders while scrolling, not the whole document
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    const sc = scrollRef.current;
+    if (!sc) return;
+    let raf = 0;
+    const on = () => {
+      if (!raf) raf = requestAnimationFrame(() => { raf = 0; setTick((t) => t + 1); });
+    };
+    sc.addEventListener('scroll', on, { passive: true });
+    return () => sc.removeEventListener('scroll', on);
+  }, [scrollRef]);
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
