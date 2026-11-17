@@ -3,8 +3,15 @@
 An iPad-first **active reading and note-taking app** with full Apple Pencil support, inspired by the LiquidText workflow:
 read a document on the left, pull ideas out into an infinite workspace on the right, and connect everything with ink.
 
-It is an installable web app (PWA). Open it in Safari on iPad → Share → **Add to Home Screen**, and it runs
-full-screen, works offline, and keeps all projects privately on the device.
+## Install it (free)
+
+1. On your iPad, open **https://aleksanderstevens191-sudo.github.io/Notes/** in **Safari**.
+2. Tap **Share** → **Add to Home Screen** → **Add**.
+3. Open **FluidNotes** from your Home Screen. It runs full-screen and works offline.
+
+No account needed. Your projects are stored privately on your own device and never uploaded anywhere.
+Updates arrive automatically the next time you open the app.
+Use **Share → Project file** to back up a project or move it to another device.
 
 ## Features
 
@@ -54,3 +61,7 @@ Pushing to GitHub deploys `dist/` to GitHub Pages via `.github/workflows/deploy.
 (enable Pages → Source: GitHub Actions in the repository settings).
 
 Stack: React + TypeScript + Vite, pdf.js (rendering/text), pdf-lib (PDF writing), perfect-freehand (ink), IndexedDB storage.
+
+## License
+
+[MIT](LICENSE) — free to use, modify and share; keep the copyright notice.
